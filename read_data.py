@@ -1,34 +1,26 @@
-
 import pandas as pd
 import os
 from all_sundays import all_sundays
-import numpy as np
+import keras
 
 directory = 'data'
-
 series = {}
 for filename in os.listdir(directory):
     # print('#'+filename[6:-4])
     fullname = directory + '/' + filename
     series[int(filename[6:-4])] = pd.read_csv(fullname, sep=';')
 
-# for val in series.values():
-#     print(val.shape)
-
-sundays = all_sundays(2017, 2)
-
 def format_date( date ):
     return "{:02d}/{:02d}/{}".format(date.day, date.month, date.year)
 
 def split_into_weeks(ser):
-
+    sundays = all_sundays(2017, 2)
     sun = sundays.__next__()
 
     start = 0
     for index, row in ser.iterrows():
 
         if not format_date(sun) in row.Date:
-
             continue
 
         yield (ser[start:index])
@@ -38,43 +30,61 @@ def split_into_weeks(ser):
 def total_return(df):
     return sum(df.Our_L)
 
-def xy_train(weeks):
+def get_x(wk):
+    temp = wk.drop('Date', axis=1)
+    result = temp.values
+    result = result.reshape((-1,))
+    return result
+
+
+def omit_date(wks):
+    w = list(map(get_x, wks))
+    w = keras.preprocessing.sequence.pad_sequences(w, maxlen=120)
+    return w
+
+def extract_profits(wks):
+    return list(map(sum, wks))
+
+import pickle
+pickle_in = open("formated.pickle","rb")
+options, op_weeks, profits = pickle.load(pickle_in)
+
+# options = [series[i] for i in range(250)]
+# op_weeks = [omit_date(split_into_weeks(opt)) for opt in options ]
+# profits = [extract_profits(wks) for wks in op_weeks]
+# wuks = []
+# for wks in op_weeks:
+#     wuks.append([ wk.reshape((-1,120)) for wk in wks])
+#
+#
+# pickle_out = open("formated.pickle", "wb")
+# pickle.dump([options, wuks, profits], pickle_out)
+# pickle_out.close()
+
+import numpy as np
+def train_data(weeks, profits):
+    x_train = np.zeros(shape=(44,1,120), dtype=np.float32)
+    y_train = np.zeros(shape=(44,1), dtype=np.float32)
+    for i in range(0,len(weeks)-1-4):
+        x_train[i] = weeks[i]
+        y_train[i] = profits[i+1]
+    return x_train, y_train
+
+def merge_data(all_weeks, all_profits):
+    xs = []
     ys = []
-    for week in weeks:
-        ys.append(total_return(week))
+    for i in range(250):
+        weeks = all_weeks[i]
+        profits = all_profits[i]
+        x, y = train_data(weeks, profits)
+        xs.append(x)
+        ys.append(y)
 
-    ys.append(0)
+    return np.concatenate(xs), np.concatenate(ys)
 
-    for i, w in enumerate(weeks):
-        x = w.Our_L.values
-        y = ys[i+1]
-        yield x, y
+x_train, y_train = merge_data(op_weeks, profits)
 
-datasets = []
-weeks = list(split_into_weeks(series[0]))
-
-# for df in series.values():
-
-
-def dataset_from_weeks(wks):
-    x_train_tmp = []
-    x_train = []
-    y_train = []
-
-    xy_gen = xy_train(wks)
-    for x, y in xy_gen:
-        x_train_tmp.append(x)
-        y_train.append(y)
-
-    for x in x_train:
-        x.reshape( (1,-1), inplace=True)
-
-    for x in x_train:
-        print(x.shape)
-
-dataset_from_weeks(weeks)
-
-# iterate over rows of each data frame, split it upon finding saturday, skip the rest of saturday.
-# y = val(-1) - val(0) for the next episode.
-
+pickle_out = open("data.pickle", "wb")
+pickle.dump([x_train, y_train], pickle_out)
+pickle_out.close()
 
