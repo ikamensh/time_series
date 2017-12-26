@@ -46,7 +46,7 @@ def extract_profits(wks):
     return list(map(sum, wks))
 
 import pickle
-pickle_in = open("formated.pickle","rb")
+pickle_in = open("cooked/formated.pickle","rb")
 options, op_weeks, profits = pickle.load(pickle_in)
 
 # options = [series[i] for i in range(250)]
@@ -84,7 +84,7 @@ def merge_data(all_weeks, all_profits):
 
 x_train, y_train = merge_data(op_weeks, profits)
 
-pickle_out = open("data.pickle", "wb")
+pickle_out = open("cooked/data.pickle", "wb")
 pickle.dump([x_train, y_train], pickle_out)
 pickle_out.close()
 
