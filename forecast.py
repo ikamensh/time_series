@@ -1,30 +1,45 @@
 import pickle
 import numpy as np
+from train_rnn import create_model, train_for_epochs
 
-import keras
-model = keras.models.load_model("models/rnn_2")
+
+pickle_in = open("cooked/data.pickle","rb")
+series, _ = pickle.load(pickle_in)
+series /= 3000
+pickle_in.close()
 
 pickle_in = open("cooked/formated.pickle","rb")
 options, op_weeks, profits = pickle.load(pickle_in)
+pickle_in.close()
 actual_profits = np.vstack(profits)
 
-def predict(model):
-    predicted_profits = [] #predictions for the whole year per option
-    for weeks in op_weeks:
-        a = np.vstack(weeks)
-        a = a.reshape((45,1,120))
-        a = a[:-1]
-        a = np.divide(a,3000)
-        b = model.predict(a)
+#TODO verdächtig!
+def predict():
+    model = create_model()
+    pred_profits = np.zeros((250,43)) #predictions for the whole year per option
+    for wk in range(2,44):
+        # n_epochs = max(10 - wk//2,4)
+        n_epochs = 1
+        train_for_epochs(model, n_epochs, wk)
+        x = series[:,wk-1]
+        b = model.predict(x)
         b = np.multiply(b,4000)
-        predicted_profits.append(b)
+        pred_profits[:,wk-2] = b.flatten()
 
-    pre_proc = [p.reshape((1,44)) for p in predicted_profits]
-    pred_profits = np.vstack(pre_proc)
-    pred_profits = np.concatenate([np.zeros(shape=(250, 1)), pred_profits], axis=1)
+    # first two weeks are not predicted at all.
+    pred_profits = np.concatenate([np.zeros(shape=(250, 2)), pred_profits], axis=1)
     return pred_profits
 
-pred_profits = predict(model)
+def predict_avg(n):
+    pred_profits = np.zeros((250, 45))  # predictions for the whole year per option
+    for wks in range(1,45):
+        if wks < n:
+            pred_profits[:,wks] = np.average(actual_profits[:,:wks], axis=1)
+        else:
+            pred_profits[:, wks] = np.average(actual_profits[:, wks-n:wks], axis=1)
+    return pred_profits
+
+
 
 def get_indexes_of_max(array, n):
     sorted_indexes_of_best_predictions = array.argsort(axis=0)
@@ -37,34 +52,41 @@ def get_elements_based_on_index(array, rows_index, n):
 
     return array[rows_index, columns]
 
+def choose_n_best_ones(n, predictions, real, msg):
 
-n_options = 5
-n_last_weeks = 8
-rows = get_indexes_of_max(pred_profits[:,-n_last_weeks:], n_options)
-chosen_ones = get_elements_based_on_index(actual_profits[:,-n_last_weeks:], rows, n_options)
+    rows = get_indexes_of_max(predictions, n)
+    chosen_ones = get_elements_based_on_index(real, rows, n)
 
-# To see which options were chosen by the model, run:
-# print(chosen_ones)
+    our_profit = 0
+    for i in range(n):
+        our_profit += sum(chosen_ones[i])
+    our_profit /= n
+    print(msg + str(our_profit))
 
-our_profit = 0
-for i in range(n_options):
-    our_profit += sum(chosen_ones[i])
-our_profit /= n_options
-print("our model allows for the profit of: " + str(our_profit)
-      + " (only last {} weeks)".format(n_last_weeks))
+def test(n):
+    pred_profits = predict_avg(n)
+
+    choose_n_best_ones(1 ,pred_profits , actual_profits, "1our model allows for the profit of: ")
+    choose_n_best_ones(2 ,pred_profits , actual_profits, "2our model allows for the profit of: ")
+    choose_n_best_ones(5 ,pred_profits , actual_profits, "5our model allows for the profit of: ")
+    choose_n_best_ones(15 ,pred_profits , actual_profits, "15our model allows for the profit of: ")
+
+
+test(6)
+
+pred_profits = predict()
+
+choose_n_best_ones(1 ,pred_profits , actual_profits, "1our model allows for the profit of: ")
+choose_n_best_ones(2 ,pred_profits , actual_profits, "2our model allows for the profit of: ")
+choose_n_best_ones(5 ,pred_profits , actual_profits, "5our model allows for the profit of: ")
+choose_n_best_ones(15 ,pred_profits , actual_profits, "15our model allows for the profit of: ")
+
 
 
 # choosing the best options possible for comparison
-n_options = 1
-rows = get_indexes_of_max(actual_profits[:,-n_last_weeks:], n_options)
-chosen_ones = get_elements_based_on_index(actual_profits[:,-n_last_weeks:], rows, n_options)
+choose_n_best_ones(1 ,actual_profits , actual_profits, "maximum possible profit is: ")
+choose_n_best_ones(250 ,actual_profits , actual_profits, "expected profit of a random choice: ")
 
-our_profit = 0
-for i in range(n_options):
-    our_profit += sum(chosen_ones[i])
-our_profit /= n_options
-print("maximum possible profit is: " + str(our_profit)
-      + " (only last {} weeks)".format(n_last_weeks))
 
 
 

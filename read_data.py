@@ -65,7 +65,7 @@ import numpy as np
 def train_data(weeks, profits):
     x_train = np.zeros(shape=(44,1,120), dtype=np.float32)
     y_train = np.zeros(shape=(44,1), dtype=np.float32)
-    for i in range(0,len(weeks)-1-4):
+    for i in range(0,len(weeks)-1):
         x_train[i] = weeks[i]
         y_train[i] = profits[i+1]
     return x_train, y_train
@@ -77,6 +77,8 @@ def merge_data(all_weeks, all_profits):
         weeks = all_weeks[i]
         profits = all_profits[i]
         x, y = train_data(weeks, profits)
+        x=x.reshape(1,44,1,120)
+        y=y.reshape(1,44,1)
         xs.append(x)
         ys.append(y)
 
