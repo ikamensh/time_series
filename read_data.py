@@ -56,7 +56,6 @@ options, op_weeks, profits = pickle.load(pickle_in)
 # for wks in op_weeks:
 #     wuks.append([ wk.reshape((-1,120)) for wk in wks])
 #
-#
 # pickle_out = open("formated.pickle", "wb")
 # pickle.dump([options, wuks, profits], pickle_out)
 # pickle_out.close()
@@ -89,4 +88,8 @@ x_train, y_train = merge_data(op_weeks, profits)
 pickle_out = open("cooked/data.pickle", "wb")
 pickle.dump([x_train, y_train], pickle_out)
 pickle_out.close()
+
+
+
+
 

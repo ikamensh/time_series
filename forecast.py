@@ -1,6 +1,6 @@
 import pickle
 import numpy as np
-from train_rnn import create_model, train_for_epochs
+from train_rnn import create_model, train_for_epochs, get_allowed_info, extend_datasets, get_predictor
 
 
 pickle_in = open("cooked/data.pickle","rb")
@@ -17,11 +17,13 @@ actual_profits = np.vstack(profits)
 def predict():
     model = create_model()
     pred_profits = np.zeros((250,43)) #predictions for the whole year per option
+    x_ds, y_ds = get_allowed_info(2)
     for wk in range(2,44):
         # n_epochs = max(10 - wk//2,4)
         n_epochs = 1
-        train_for_epochs(model, n_epochs, wk)
-        x = series[:,wk-1]
+        x_ds, y_ds = extend_datasets(wk, x_ds, y_ds)
+        train_for_epochs(model, x_ds, y_ds, n_epochs)
+        x = get_predictor(2)
         b = model.predict(x)
         b = np.multiply(b,4000)
         pred_profits[:,wk-2] = b.flatten()
