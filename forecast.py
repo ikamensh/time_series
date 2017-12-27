@@ -3,11 +3,6 @@ import numpy as np
 from train_rnn import create_model, train_for_epochs, get_allowed_info, extend_datasets, get_predictor
 
 
-pickle_in = open("cooked/data.pickle","rb")
-series, _ = pickle.load(pickle_in)
-series /= 3000
-pickle_in.close()
-
 pickle_in = open("cooked/formated.pickle","rb")
 options, op_weeks, profits = pickle.load(pickle_in)
 pickle_in.close()
@@ -18,9 +13,10 @@ def predict():
     model = create_model()
     pred_profits = np.zeros((250,43)) #predictions for the whole year per option
     x_ds, y_ds = get_allowed_info(2)
-    for wk in range(2,44):
-        # n_epochs = max(10 - wk//2,4)
-        n_epochs = 1
+    for wk in range(2, 20):
+    # for wk in range(2,44):
+        #n_epochs = max(5 - 6*wk,4)
+        n_epochs = 7
         x_ds, y_ds = extend_datasets(wk, x_ds, y_ds)
         train_for_epochs(model, x_ds, y_ds, n_epochs)
         x = get_predictor(2)
