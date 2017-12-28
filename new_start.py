@@ -1,10 +1,7 @@
 import pickle
 import numpy as np
-import matplotlib.pyplot as plt
-import keras
-from keras.objectives import mae, mse
 
-from train_rnn import create_model, get_predictor
+from train_rnn import create_model
 
 pickle_in = open("cooked/data.pickle","rb")
 

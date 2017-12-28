@@ -56,24 +56,22 @@ def choose_n_best_ones(n, predictions, real, msg):
     our_profit /= n
     print(msg + str(our_profit))
 
-def test(n):
-    pred_profits = predict_avg(n)
-
-    choose_n_best_ones(1 ,pred_profits , actual_profits, "1our model allows for the profit of: ")
-    choose_n_best_ones(2 ,pred_profits , actual_profits, "2our model allows for the profit of: ")
-    choose_n_best_ones(5 ,pred_profits , actual_profits, "5our model allows for the profit of: ")
-    choose_n_best_ones(15 ,pred_profits , actual_profits, "15our model allows for the profit of: ")
 
 
-test(6)
 pred_profits_avg = predict_avg(6)
-pred_profits = predict_rnn() + pred_profits_avg
+pred_profits_rnn =  predict_rnn()
 
-choose_n_best_ones(1 ,pred_profits , actual_profits, "1our model allows for the profit of: ")
-choose_n_best_ones(2 ,pred_profits , actual_profits, "2our model allows for the profit of: ")
-choose_n_best_ones(5 ,pred_profits , actual_profits, "5our model allows for the profit of: ")
-choose_n_best_ones(15 ,pred_profits , actual_profits, "15our model allows for the profit of: ")
 
+def test_predictions(predictions):
+    choose_n_best_ones(1 ,predictions , actual_profits, "1our model allows for the profit of: ")
+    choose_n_best_ones(2 ,predictions , actual_profits, "2our model allows for the profit of: ")
+    choose_n_best_ones(5 ,predictions , actual_profits, "5our model allows for the profit of: ")
+    choose_n_best_ones(15 ,predictions , actual_profits, "15our model allows for the profit of: ")
+
+test_predictions(pred_profits_avg)
+test_predictions(pred_profits_rnn)
+test_predictions(pred_profits_avg - pred_profits_rnn)
+test_predictions(pred_profits_avg + pred_profits_rnn)
 
 
 # choosing the best options possible for comparison
