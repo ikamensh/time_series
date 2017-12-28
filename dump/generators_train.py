@@ -13,7 +13,17 @@ def findfiles(rootdir):
 
 
 
+# g = findfiles(r'C:\Users\ikamensh\game_nidolons')
+
+import numpy as np
+
+def average(arr, n, axis):
 
 
-g = findfiles(r'C:\Users\ikamensh\game_nidolons')
+
+    end =  n * int(len(arr)/n)
+    return np.mean(arr[:end].reshape(-1, n), axis)
+
+A = np.array([[1,2,3],[4,5,6]])
+print(A)
 
