@@ -22,45 +22,37 @@ y_train /= 4000
 
 
 
-def create_model():
+def create_model(n_ch):
     model = Sequential()
-    model.add(LSTM(128, activation=elu, input_shape=(250,480)))
-    model.add(Dense(250))
+    model.add(LSTM(128, activation=elu, input_shape=(n_ch,480)))
+    model.add(Dense(n_ch))
     model.compile(optimizer=adam(), loss=mean_absolute_error)
     return model
 
-def get_allowed_info(week_n):
+def get_allowed_info(week_n, n_sliding):
     if week_n < 2:
         return None, None
-    if week_n >5:
-        x= x_train[:, week_n - 5:week_n - 1]
+    if week_n > n_sliding +1:
+        x= x_train[:, week_n - n_sliding-1:week_n - 1]
     else:
         x= x_train[:, :week_n - 1]
     x = x.reshape(250,-1)
-
-    print(x_train.dtype)
-    print(x.dtype)
-
-    x = keras.preprocessing.sequence.pad_sequences(x, maxlen=480, dtype='float32')
-
-    print(x_train.dtype)
-    print(x.dtype)
-
+    x = keras.preprocessing.sequence.pad_sequences(x, maxlen=n_sliding*120, dtype='float32')
     x = x.reshape(1,250, -1)
     y = y_train[:, week_n - 1]
     y = y.reshape(1,250)
 
     return x, y
 
-def get_predictor(week_n):
-    if week_n < 2:
+def get_predictor(week_n, seq, n_sliding):
+    if week_n < 1:
         return None
-    if week_n >9:
-        x = x_train[:, week_n - 8:week_n]
+    if week_n > 1 + n_sliding:
+        x = seq[:, week_n - n_sliding:week_n]
     else:
-        x = x_train[:, :week_n]
+        x = seq[:, :week_n]
     x = x.reshape(250,-1)
-    x = keras.preprocessing.sequence.pad_sequences(x, maxlen=480, dtype='float32')
+    x = keras.preprocessing.sequence.pad_sequences(x, maxlen=120*n_sliding, dtype='float32')
     x = x.reshape(1,250, -1)
 
     return x

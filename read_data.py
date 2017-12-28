@@ -39,7 +39,7 @@ def get_x(wk):
 
 def omit_date(wks):
     w = list(map(get_x, wks))
-    w = keras.preprocessing.sequence.pad_sequences(w, maxlen=120)
+    w = keras.preprocessing.sequence.pad_sequences(w, maxlen=120, dtype='float32')
     return w
 
 def extract_profits(wks):
@@ -76,14 +76,17 @@ def merge_data(all_weeks, all_profits):
         weeks = all_weeks[i]
         profits = all_profits[i]
         x, y = train_data(weeks, profits)
-        x=x.reshape(1,44,1,120)
-        y=y.reshape(1,44,1)
+        x=x.reshape(1,44,120)
+        y=y.reshape(1,44)
         xs.append(x)
         ys.append(y)
 
     return np.concatenate(xs), np.concatenate(ys)
 
+
 x_train, y_train = merge_data(op_weeks, profits)
+x_train = np.swapaxes(x_train, 0, 1)
+y_train = np.swapaxes(y_train, 0, 1)
 
 pickle_out = open("cooked/data.pickle", "wb")
 pickle.dump([x_train, y_train], pickle_out)
