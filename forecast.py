@@ -1,6 +1,6 @@
 import pickle
 import numpy as np
-from new_start import train, predict
+from new_start3 import train, predict
 
 
 pickle_in = open("cooked/formated.pickle","rb")
@@ -11,10 +11,10 @@ actual_profits = np.vstack(profits)
 #TODO verdächtig!
 def predict_rnn():
     pred_profits = np.zeros((250,43)) #predictions for the whole year per option
-    train(20,30)
-    for wk in range(20, 44):
-    # for wk in range(2,44):
-        train(wk, 1)
+
+    for wk in range(3, 45):
+        print("predicting week {}".format(wk))
+        train(wk)
         b = predict(wk)
         b = np.multiply(b,4000)
         pred_profits[:,wk-2] = b.flatten()
@@ -68,10 +68,13 @@ def test_predictions(predictions):
     choose_n_best_ones(5 ,predictions , actual_profits, "5our model allows for the profit of: ")
     choose_n_best_ones(15 ,predictions , actual_profits, "15our model allows for the profit of: ")
 
-test_predictions(pred_profits_avg)
+# test_predictions(pred_profits_avg)
 test_predictions(pred_profits_rnn)
-test_predictions(pred_profits_avg - pred_profits_rnn)
-test_predictions(pred_profits_avg + pred_profits_rnn)
+# pred = np.concatenate([pred_profits_avg[:,:15],pred_profits_rnn[:,15:]], axis=1)
+# test_predictions(pred)
+
+# test_predictions(pred_profits_avg - pred_profits_rnn)
+# test_predictions(pred_profits_avg + pred_profits_rnn)
 
 
 # choosing the best options possible for comparison
