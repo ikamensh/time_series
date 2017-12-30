@@ -13,7 +13,7 @@ def create_model(n_wks):
     model = Sequential()
     model.add(LSTM(128, activation=sigmoid, input_shape=(250,n_wks*120), dropout=0.3, kernel_regularizer=l1_l2(1e-4,1e-3)))
     model.add(Dense(250, kernel_regularizer=l1_l2(1e-4,1e-3)))
-    model.compile(optimizer=adam(), loss=mean_squared_error)
+    model.compile(optimizer=adam(), loss=mean_absolute_error)
     return model
 
 def create_model_y(n_wks):
